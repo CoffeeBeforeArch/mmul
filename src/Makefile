@@ -1,10 +1,13 @@
 # A simple makefile for GEMM benchmarks
 
-CXX_FLAGS = -O3 -march=native -mtune=native -flto -fuse-linker-plugin --std=c++2a
+CXX_FLAGS = -O3 -march=native -mtune=native -flto -fuse-linker-plugin --std=c++2a -g
 LINKER_FLAGS = -lbenchmark -lpthread
 
-benchmark : serial_gemm.o blocked_gemm.o
-	g++ benchmark.cpp serial_gemm.o blocked_gemm.o ${CXX_FLAGS} ${LINKER_FLAGS} -o gemm_bench
+benchmark : serial_gemm.o blocked_gemm.o parallel_gemm.o
+	g++ benchmark.cpp serial_gemm.o blocked_gemm.o parallel_gemm.o ${CXX_FLAGS} ${LINKER_FLAGS} -o gemm_bench
+
+parallel_gemm.o : parallel_gemm.cpp
+	g++ -c parallel_gemm.cpp ${CXX_FLAGS}
 
 blocked_gemm.o : blocked_gemm.cpp
 	g++ -c blocked_gemm.cpp ${CXX_FLAGS}

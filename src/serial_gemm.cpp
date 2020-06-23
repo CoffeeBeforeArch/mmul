@@ -1,6 +1,6 @@
 // Implementation of serial GEMM function
 
-#include <vector>
+#include <cstddef>
 
 // Serial implementation
 void serial_gemm(const double *A, const double *B, double *C, std::size_t N) {
