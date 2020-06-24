@@ -51,7 +51,7 @@ static void serial_gemm_bench(benchmark::State &s) {
 }
 BENCHMARK(serial_gemm_bench)->DenseRange(8, 10)->Unit(benchmark::kMillisecond);
 
-// Serial GEMM benchmark
+// Serial GEMM benchmark with aligned memory benchmark
 static void serial_aligned_gemm_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
   std::size_t N = (1 << s.range(0)) + 16;
@@ -117,7 +117,7 @@ static void blocked_gemm_bench(benchmark::State &s) {
 }
 BENCHMARK(blocked_gemm_bench)->DenseRange(8, 10)->Unit(benchmark::kMillisecond);
 
-// Blocked GEMM benchmark
+// Blocked GEMM with aligned memory benchmark
 static void blocked_aligned_gemm_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
   std::size_t N = (1 << s.range(0)) + 16;
@@ -151,7 +151,7 @@ BENCHMARK(blocked_aligned_gemm_bench)
     ->DenseRange(8, 10)
     ->Unit(benchmark::kMillisecond);
 
-// Blocked GEMM benchmark
+// Parallel GEMM benchmark
 static void parallel_gemm_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
   std::size_t N = (1 << s.range(0)) + 16;
