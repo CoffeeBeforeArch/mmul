@@ -30,6 +30,38 @@ static void serial_gemm_bench(benchmark::State &s) {
   std::uniform_real_distribution<double> dist(-10, 10);
 
   // Create input matrices
+  double *A = new double[N * N];
+  double *B = new double[N * N];
+  double *C = new double[N * N];
+
+  // Initialize them with random values (and C to 0)
+  std::generate(A, A + N * N, [&] { return dist(rng); });
+  std::generate(B, B + N * N, [&] { return dist(rng); });
+  std::generate(C, C + N * N, [&] { return 0; });
+
+  // Main benchmark loop
+  for (auto _ : s) {
+    serial_gemm(A, B, C, N);
+  }
+
+  // Free memory
+  delete[] A;
+  delete[] B;
+  delete[] C;
+}
+BENCHMARK(serial_gemm_bench)->DenseRange(8, 10)->Unit(benchmark::kMillisecond);
+
+// Serial GEMM benchmark
+static void serial_aligned_gemm_bench(benchmark::State &s) {
+  // Number Dimensions of our matrix
+  std::size_t N = (1 << s.range(0)) + 16;
+
+  // Create our random number generators
+  std::mt19937 rng;
+  rng.seed(std::random_device()());
+  std::uniform_real_distribution<double> dist(-10, 10);
+
+  // Create input matrices
   double *A = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
   double *B = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
   double *C = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
@@ -49,10 +81,44 @@ static void serial_gemm_bench(benchmark::State &s) {
   free(B);
   free(C);
 }
-BENCHMARK(serial_gemm_bench)->DenseRange(8, 10)->Unit(benchmark::kMillisecond);
+BENCHMARK(serial_aligned_gemm_bench)
+    ->DenseRange(8, 10)
+    ->Unit(benchmark::kMillisecond);
 
 // Blocked GEMM benchmark
 static void blocked_gemm_bench(benchmark::State &s) {
+  // Number Dimensions of our matrix
+  std::size_t N = (1 << s.range(0)) + 16;
+
+  // Create our random number generators
+  std::mt19937 rng;
+  rng.seed(std::random_device()());
+  std::uniform_real_distribution<double> dist(-10, 10);
+
+  // Create input matrices
+  double *A = new double[N * N];
+  double *B = new double[N * N];
+  double *C = new double[N * N];
+
+  // Initialize them with random values (and C to 0)
+  std::generate(A, A + N * N, [&] { return dist(rng); });
+  std::generate(B, B + N * N, [&] { return dist(rng); });
+  std::generate(C, C + N * N, [&] { return 0; });
+
+  // Main benchmark loop
+  for (auto _ : s) {
+    blocked_gemm(A, B, C, N);
+  }
+
+  // Free memory
+  delete[] A;
+  delete[] B;
+  delete[] C;
+}
+BENCHMARK(blocked_gemm_bench)->DenseRange(8, 10)->Unit(benchmark::kMillisecond);
+
+// Blocked GEMM benchmark
+static void blocked_aligned_gemm_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
   std::size_t N = (1 << s.range(0)) + 16;
 
@@ -81,7 +147,9 @@ static void blocked_gemm_bench(benchmark::State &s) {
   free(B);
   free(C);
 }
-BENCHMARK(blocked_gemm_bench)->DenseRange(8, 10)->Unit(benchmark::kMillisecond);
+BENCHMARK(blocked_aligned_gemm_bench)
+    ->DenseRange(8, 10)
+    ->Unit(benchmark::kMillisecond);
 
 // Blocked GEMM benchmark
 static void parallel_gemm_bench(benchmark::State &s) {
