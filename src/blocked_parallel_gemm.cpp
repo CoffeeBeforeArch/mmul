@@ -1,7 +1,5 @@
 // Implementation of blocked parallel GEMM function
 
-#include <bits/c++config.h>
-
 #include <vector>
 
 // Blocked serial implementation
