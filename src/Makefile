@@ -3,8 +3,14 @@
 CXX_FLAGS = -O3 -march=native -mtune=native -flto -fuse-linker-plugin --std=c++2a -g
 LINKER_FLAGS = -lbenchmark -lpthread
 
-benchmark : serial_gemm.o blocked_gemm.o parallel_gemm.o blocked_parallel_gemm.o
-	g++ benchmark.cpp serial_gemm.o blocked_gemm.o parallel_gemm.o blocked_parallel_gemm.o ${CXX_FLAGS} ${LINKER_FLAGS} -o gemm_bench
+benchmark : serial_gemm.o blocked_gemm.o parallel_gemm.o blocked_parallel_gemm.o blocked_column_gemm.o blocked_column_parallel_gemm.o
+	g++ benchmark.cpp serial_gemm.o blocked_gemm.o parallel_gemm.o blocked_parallel_gemm.o blocked_column_gemm.o blocked_column_parallel_gemm.o ${CXX_FLAGS} ${LINKER_FLAGS} -o gemm_bench
+
+blocked_column_parallel_gemm.o : blocked_column_parallel_gemm.cpp
+	g++ -c blocked_column_parallel_gemm.cpp ${CXX_FLAGS}
+
+blocked_column_gemm.o : blocked_column_gemm.cpp
+	g++ -c blocked_column_gemm.cpp ${CXX_FLAGS}
 
 blocked_parallel_gemm.o : blocked_parallel_gemm.cpp
 	g++ -c blocked_parallel_gemm.cpp ${CXX_FLAGS}
