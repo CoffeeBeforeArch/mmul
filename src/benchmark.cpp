@@ -235,12 +235,14 @@ static void parallel_gemm_bench(benchmark::State &s) {
   // Main benchmark loop
   for (auto _ : s) {
     // Launch threads
-    for (std::size_t i = 0; i < num_threads; i++) {
+    std::size_t end_row;
+    for (std::size_t i = 0; i < num_threads - 1; i++) {
       auto start_row = i * n_rows;
-      auto end_row = start_row + n_rows;
+      end_row = start_row + n_rows;
       threads.emplace_back(
           [&] { parallel_gemm(A, B, C, N, start_row, end_row); });
     }
+    parallel_gemm(A, B, C, N, end_row, end_row + n_rows);
 
     // Wait for all threads to complete
     for (auto &t : threads) t.join();
@@ -291,12 +293,14 @@ static void parallel_blocked_gemm_bench(benchmark::State &s) {
   // Main benchmark loop
   for (auto _ : s) {
     // Launch threads
-    for (std::size_t i = 0; i < num_threads; i++) {
+    std::size_t end_row;
+    for (std::size_t i = 0; i < num_threads - 1; i++) {
       auto start_row = i * n_rows;
-      auto end_row = start_row + n_rows;
+      end_row = start_row + n_rows;
       threads.emplace_back(
           [&] { blocked_parallel_gemm(A, B, C, N, start_row, end_row); });
     }
+    blocked_parallel_gemm(A, B, C, N, end_row, end_row + n_rows);
 
     // Wait for all threads to complete
     for (auto &t : threads) t.join();
@@ -440,10 +444,11 @@ static void parallel_blocked_column_atomic_gemm_bench(benchmark::State &s) {
     std::atomic<uint64_t> pos{0};
 
     // Launch threads
-    for (std::size_t i = 0; i < num_threads; i++) {
+    for (std::size_t i = 0; i < num_threads - 1; i++) {
       threads.emplace_back(
           [&] { blocked_column_parallel_atomic_gemm(A, B, C, N, pos); });
     }
+    blocked_column_parallel_atomic_gemm(A, B, C, N, pos);
 
     // Wait for all threads to complete
     for (auto &t : threads) t.join();
