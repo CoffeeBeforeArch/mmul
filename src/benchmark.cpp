@@ -105,8 +105,8 @@ static void serial_gemm_bench(benchmark::State &s) {
 }
 BENCHMARK(serial_gemm_bench)->DenseRange(8, 10)->Unit(benchmark::kMillisecond);
 
-// Serial GEMM benchmark with aligned memory benchmark
-static void serial_aligned_gemm_bench(benchmark::State &s) {
+// Parallel GEMM benchmark
+static void parallel_gemm_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
   std::size_t N = (1 << s.range(0)) + 16;
 
@@ -125,9 +125,32 @@ static void serial_aligned_gemm_bench(benchmark::State &s) {
   std::generate(B, B + N * N, [&] { return dist(rng); });
   std::generate(C, C + N * N, [&] { return 0; });
 
+  // Set up for launching threads
+  std::size_t num_threads = std::thread::hardware_concurrency();
+  std::vector<std::thread> threads;
+  threads.reserve(num_threads);
+
+  // Calculate values to pass to threads
+  // Assumed to be divisable by num_threads (evenly)
+  std::size_t n_rows = N / num_threads;
+
   // Main benchmark loop
   for (auto _ : s) {
-    serial_gemm(A, B, C, N);
+    // Launch threads
+    std::size_t end_row = 0;
+    for (std::size_t i = 0; i < num_threads - 1; i++) {
+      auto start_row = i * n_rows;
+      end_row = start_row + n_rows;
+      threads.emplace_back(
+          [&] { parallel_gemm(A, B, C, N, start_row, end_row); });
+    }
+    parallel_gemm(A, B, C, N, end_row, end_row + n_rows);
+
+    // Wait for all threads to complete
+    for (auto &t : threads) t.join();
+
+    // Clear the threads each iteration of the benchmark
+    threads.clear();
   }
 
   // Free memory
@@ -135,9 +158,10 @@ static void serial_aligned_gemm_bench(benchmark::State &s) {
   free(B);
   free(C);
 }
-BENCHMARK(serial_aligned_gemm_bench)
+BENCHMARK(parallel_gemm_bench)
     ->DenseRange(8, 10)
-    ->Unit(benchmark::kMillisecond);
+    ->Unit(benchmark::kMillisecond)
+    ->UseRealTime();
 
 // Blocked GEMM benchmark
 static void blocked_gemm_bench(benchmark::State &s) {
@@ -205,69 +229,6 @@ BENCHMARK(blocked_aligned_gemm_bench)
     ->DenseRange(8, 10)
     ->Unit(benchmark::kMillisecond);
 
-// Parallel GEMM benchmark
-static void parallel_gemm_bench(benchmark::State &s) {
-  // Number Dimensions of our matrix
-  std::size_t N = (1 << s.range(0)) + 16;
-
-  // Create our random number generators
-  std::mt19937 rng;
-  rng.seed(std::random_device()());
-  std::uniform_real_distribution<double> dist(-10, 10);
-
-  // Create input matrices
-  double *A = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
-  double *B = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
-  double *C = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
-
-  // Initialize them with random values (and C to 0)
-  std::generate(A, A + N * N, [&] { return dist(rng); });
-  std::generate(B, B + N * N, [&] { return dist(rng); });
-  std::generate(C, C + N * N, [&] { return 0; });
-
-  // Set up for launching threads
-  std::size_t num_threads = std::thread::hardware_concurrency();
-  std::vector<std::thread> threads;
-  threads.reserve(num_threads);
-
-  // Set up the thread affinity masks
-  std::vector<cpu_set_t> sets(num_threads);
-  for (std::size_t i = 0; i < num_threads; i++) CPU_ZERO(&sets[i]);
-  for (std::size_t i = 0; i < num_threads; i++) CPU_SET(i, &sets[i]);
-
-  // Calculate values to pass to threads
-  // Assumed to be divisable by num_threads (evenly)
-  std::size_t n_rows = N / num_threads;
-
-  // Main benchmark loop
-  for (auto _ : s) {
-    // Launch threads
-    std::size_t end_row;
-    for (std::size_t i = 0; i < num_threads; i++) {
-      auto start_row = i * n_rows;
-      end_row = start_row + n_rows;
-      threads.emplace_back(
-          [&] { parallel_gemm(A, B, C, N, start_row, end_row); });
-      pthread_setaffinity_np(threads[i].native_handle(), sizeof(cpu_set_t), &sets[i]);
-    }
-
-    // Wait for all threads to complete
-    for (auto &t : threads) t.join();
-
-    // Clear the threads each iteration of the benchmark
-    threads.clear();
-  }
-
-  // Free memory
-  free(A);
-  free(B);
-  free(C);
-}
-BENCHMARK(parallel_gemm_bench)
-    ->DenseRange(8, 10)
-    ->Unit(benchmark::kMillisecond)
-    ->UseRealTime();
-
 // Parallel blocked GEMM benchmark
 static void parallel_blocked_gemm_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
@@ -300,7 +261,7 @@ static void parallel_blocked_gemm_bench(benchmark::State &s) {
   // Main benchmark loop
   for (auto _ : s) {
     // Launch threads
-    std::size_t end_row;
+    std::size_t end_row = 0;
     for (std::size_t i = 0; i < num_threads - 1; i++) {
       auto start_row = i * n_rows;
       end_row = start_row + n_rows;
@@ -322,64 +283,6 @@ static void parallel_blocked_gemm_bench(benchmark::State &s) {
   free(C);
 }
 BENCHMARK(parallel_blocked_gemm_bench)
-    ->DenseRange(8, 10)
-    ->Unit(benchmark::kMillisecond)
-    ->UseRealTime();
-
-// Parallel blocked GEMM benchmark w/ thread affinity
-static void parallel_blocked_affinity_gemm_bench(benchmark::State &s) {
-  // Number Dimensions of our matrix
-  std::size_t N = (1 << s.range(0)) + 16;
-
-  // Create our random number generators
-  std::mt19937 rng;
-  rng.seed(std::random_device()());
-  std::uniform_real_distribution<double> dist(-10, 10);
-
-  // Create input matrices
-  double *A = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
-  double *B = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
-  double *C = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
-
-  // Initialize them with random values (and C to 0)
-  std::generate(A, A + N * N, [&] { return dist(rng); });
-  std::generate(B, B + N * N, [&] { return dist(rng); });
-  std::generate(C, C + N * N, [&] { return 0; });
-
-  // Set up for launching threads
-  std::size_t num_threads = std::thread::hardware_concurrency();
-  std::vector<std::thread> threads;
-  threads.reserve(num_threads);
-
-  // Calculate values to pass to threads
-  // Assumed to be divisable by num_threads (evenly)
-  std::size_t n_rows = N / num_threads;
-
-  // Main benchmark loop
-  for (auto _ : s) {
-    // Launch threads
-    std::size_t end_row;
-    for (std::size_t i = 0; i < num_threads - 1; i++) {
-      auto start_row = i * n_rows;
-      end_row = start_row + n_rows;
-      threads.emplace_back(
-          [&] { blocked_parallel_gemm(A, B, C, N, start_row, end_row); });
-    }
-    blocked_parallel_gemm(A, B, C, N, end_row, end_row + n_rows);
-
-    // Wait for all threads to complete
-    for (auto &t : threads) t.join();
-
-    // Clear the threads each iteration of the benchmark
-    threads.clear();
-  }
-
-  // Free memory
-  free(A);
-  free(B);
-  free(C);
-}
-BENCHMARK(parallel_blocked_affinity_gemm_bench)
     ->DenseRange(8, 10)
     ->Unit(benchmark::kMillisecond)
     ->UseRealTime();
@@ -417,6 +320,60 @@ static void blocked_column_aligned_gemm_bench(benchmark::State &s) {
 BENCHMARK(blocked_column_aligned_gemm_bench)
     ->DenseRange(8, 10)
     ->Unit(benchmark::kMillisecond);
+
+// Parallel blocked column GEMM benchmark
+static void parallel_blocked_column_atomic_gemm_bench(benchmark::State &s) {
+  // Number Dimensions of our matrix
+  std::size_t N = (1 << s.range(0)) + 16;
+
+  // Create our random number generators
+  std::mt19937 rng;
+  rng.seed(std::random_device()());
+  std::uniform_real_distribution<double> dist(-10, 10);
+
+  // Create input matrices
+  double *A = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
+  double *B = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
+  double *C = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
+
+  // Initialize them with random values (and C to 0)
+  std::generate(A, A + N * N, [&] { return dist(rng); });
+  std::generate(B, B + N * N, [&] { return dist(rng); });
+  std::generate(C, C + N * N, [&] { return 0; });
+
+  // Set up for launching threads
+  std::size_t num_threads = std::thread::hardware_concurrency();
+  std::vector<std::thread> threads;
+  threads.reserve(num_threads);
+
+  // Main benchmark loop
+  for (auto _ : s) {
+    // Atomic uint64_t to keep track of position
+    std::atomic<uint64_t> pos{0};
+
+    // Launch threads
+    for (std::size_t i = 0; i < num_threads - 1; i++) {
+      threads.emplace_back(
+          [&] { blocked_column_parallel_atomic_gemm(A, B, C, N, pos); });
+    }
+    blocked_column_parallel_atomic_gemm(A, B, C, N, pos);
+
+    // Wait for all threads to complete
+    for (auto &t : threads) t.join();
+
+    // Clear the threads each iteration of the benchmark
+    threads.clear();
+  }
+
+  // Free memory
+  free(A);
+  free(B);
+  free(C);
+}
+BENCHMARK(parallel_blocked_column_atomic_gemm_bench)
+    ->DenseRange(8, 10)
+    ->Unit(benchmark::kMillisecond)
+    ->UseRealTime();
 
 // Parallel blocked column GEMM benchmark
 static void parallel_blocked_column_gemm_bench(benchmark::State &s) {
@@ -474,60 +431,6 @@ static void parallel_blocked_column_gemm_bench(benchmark::State &s) {
   free(C);
 }
 BENCHMARK(parallel_blocked_column_gemm_bench)
-    ->DenseRange(8, 10)
-    ->Unit(benchmark::kMillisecond)
-    ->UseRealTime();
-
-// Parallel blocked column GEMM benchmark
-static void parallel_blocked_column_atomic_gemm_bench(benchmark::State &s) {
-  // Number Dimensions of our matrix
-  std::size_t N = (1 << s.range(0)) + 16;
-
-  // Create our random number generators
-  std::mt19937 rng;
-  rng.seed(std::random_device()());
-  std::uniform_real_distribution<double> dist(-10, 10);
-
-  // Create input matrices
-  double *A = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
-  double *B = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
-  double *C = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
-
-  // Initialize them with random values (and C to 0)
-  std::generate(A, A + N * N, [&] { return dist(rng); });
-  std::generate(B, B + N * N, [&] { return dist(rng); });
-  std::generate(C, C + N * N, [&] { return 0; });
-
-  // Set up for launching threads
-  std::size_t num_threads = std::thread::hardware_concurrency();
-  std::vector<std::thread> threads;
-  threads.reserve(num_threads);
-
-  // Main benchmark loop
-  for (auto _ : s) {
-    // Atomic uint64_t to keep track of position
-    std::atomic<uint64_t> pos{0};
-
-    // Launch threads
-    for (std::size_t i = 0; i < num_threads - 1; i++) {
-      threads.emplace_back(
-          [&] { blocked_column_parallel_atomic_gemm(A, B, C, N, pos); });
-    }
-    blocked_column_parallel_atomic_gemm(A, B, C, N, pos);
-
-    // Wait for all threads to complete
-    for (auto &t : threads) t.join();
-
-    // Clear the threads each iteration of the benchmark
-    threads.clear();
-  }
-
-  // Free memory
-  free(A);
-  free(B);
-  free(C);
-}
-BENCHMARK(parallel_blocked_column_atomic_gemm_bench)
     ->DenseRange(8, 10)
     ->Unit(benchmark::kMillisecond)
     ->UseRealTime();
