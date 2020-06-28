@@ -12,5 +12,5 @@ void parallel_gemm(const double *A, const double *B, double *C, std::size_t N,
       // For each element in the row-col pair...
       for (std::size_t idx = 0; idx < N; idx++)
         // Accumulate the partial results
-        C[row * N + col] += A[row * N + idx] + B[idx * N + col];
+        C[row * N + col] += A[row * N + idx] * B[idx * N + col];
 }
