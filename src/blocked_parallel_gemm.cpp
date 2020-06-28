@@ -2,7 +2,7 @@
 
 #include <cstddef>
 
-// Blocked serial implementation
+// Blocked parallel implementation
 void blocked_parallel_gemm(const double *A, const double *B, double *C,
                            std::size_t N, std::size_t start_row,
                            std::size_t end_row) {
