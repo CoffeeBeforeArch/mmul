@@ -39,6 +39,11 @@ void blocked_column_parallel_gemm(const double *A, const double *B, double *C,
 void blocked_column_parallel_atomic_gemm(const double *A, const double *B,
                                          double *C, std::size_t N,
                                          std::atomic<uint64_t> &pos);
+
+// Function prototype for blocked partial column serial GEMM
+void blocked_partial_column_gemm(const double *A, const double *B, double *C,
+                         std::size_t N);
+
 // Serial GEMM benchmark
 static void serial_gemm_bench_power_two(benchmark::State &s) {
   // Number Dimensions of our matrix
@@ -434,5 +439,39 @@ BENCHMARK(parallel_blocked_column_gemm_bench)
     ->DenseRange(8, 10)
     ->Unit(benchmark::kMillisecond)
     ->UseRealTime();
+
+// Blocked partial column GEMM with aligned memory benchmark
+static void blocked_partial_column_aligned_gemm_bench(benchmark::State &s) {
+  // Number Dimensions of our matrix
+  std::size_t N = (1 << s.range(0)) + 16;
+
+  // Create our random number generators
+  std::mt19937 rng;
+  rng.seed(std::random_device()());
+  std::uniform_real_distribution<double> dist(-10, 10);
+
+  // Create input matrices
+  double *A = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
+  double *B = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
+  double *C = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
+
+  // Initialize them with random values (and C to 0)
+  std::generate(A, A + N * N, [&] { return dist(rng); });
+  std::generate(B, B + N * N, [&] { return dist(rng); });
+  std::generate(C, C + N * N, [&] { return 0; });
+
+  // Main benchmark loop
+  for (auto _ : s) {
+    blocked_partial_column_gemm(A, B, C, N);
+  }
+
+  // Free memory
+  free(A);
+  free(B);
+  free(C);
+}
+BENCHMARK(blocked_partial_column_aligned_gemm_bench)
+    ->DenseRange(8, 10)
+    ->Unit(benchmark::kMillisecond);
 
 BENCHMARK_MAIN();

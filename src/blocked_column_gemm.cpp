@@ -2,7 +2,7 @@
 
 #include <cstddef>
 
-// Blocked serial implementation
+// Blocked column serial implementation
 void blocked_column_gemm(const double *A, const double *B, double *C,
                          std::size_t N) {
   // For each chunk of columns
