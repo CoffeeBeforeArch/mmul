@@ -14,12 +14,12 @@
 // Function prototype for serial GEMM
 void serial_gemm(const double *A, const double *B, double *C, std::size_t N);
 
-// Function prototype for blocked GEMM
-void blocked_gemm(const double *A, const double *B, double *C, std::size_t N);
-
 // Function for naive parallelized GEMM
 void parallel_gemm(const double *A, const double *b, double *C, std::size_t N,
                    std::size_t start_row, std::size_t end_row);
+
+// Function prototype for blocked GEMM
+void blocked_gemm(const double *A, const double *B, double *C, std::size_t N);
 
 // Function for blocked parallelized GEMM
 void blocked_parallel_gemm(const double *A, const double *b, double *C,
