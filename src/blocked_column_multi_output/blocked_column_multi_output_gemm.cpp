@@ -2,7 +2,7 @@
 
 #include <cstddef>
 
-// Blocked column serial implementation
+// Blocked column multi-output serial implementation
 void blocked_column_multi_output_gemm(const double *A, const double *B,
                                       double *C, std::size_t N) {
   // For each chunk of columns
@@ -12,7 +12,7 @@ void blocked_column_multi_output_gemm(const double *A, const double *B,
       // For each block of elements in this row of this column chunk
       // Solve for 16 elements at a time
       for (std::size_t tile = 0; tile < N; tile += 16)
-        // For apply that tile to each row of the row chunk
+        // Apply that tile to each row of the row chunk
         for (std::size_t row = 0; row < 16; row++)
           // For each row in the tile
           for (std::size_t tile_row = 0; tile_row < 16; tile_row++)
