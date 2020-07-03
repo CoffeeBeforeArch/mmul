@@ -1,0 +1,18 @@
+# A simple makefile for GEMM benchmarks
+
+CXX_FLAGS = -O3 -march=native -mtune=native -flto -fuse-linker-plugin --std=c++2a
+LINKER_FLAGS = -lbenchmark -lpthread
+
+benchmark : transpose_vdppd_gemm.o parallel_transpose_vdppd_gemm.o
+	g++ benchmark.cpp transpose_vdppd_gemm.o parallel_transpose_vdppd_gemm.o ${CXX_FLAGS} ${LINKER_FLAGS} -o gemm_bench
+
+parallel_transpose_vdppd_gemm.o : parallel_transpose_vdppd_gemm.cpp
+	g++ -c parallel_transpose_vdppd_gemm.cpp ${CXX_FLAGS}
+
+transpose_vdppd_gemm.o : transpose_vdppd_gemm.cpp
+	g++ -c transpose_vdppd_gemm.cpp ${CXX_FLAGS}
+
+clean :
+	rm -rf gemm_bench
+	rm -rf *.o
+
