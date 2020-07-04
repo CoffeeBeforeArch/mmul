@@ -2,10 +2,7 @@
 
 #include "benchmark/benchmark.h"
 
-#include <pthread.h>
-
 #include <algorithm>
-#include <atomic>
 #include <cstdlib>
 #include <random>
 #include <thread>

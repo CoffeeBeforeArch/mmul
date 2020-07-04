@@ -18,7 +18,7 @@ void blocked_column_multi_output_parallel_atomic_gemm(
     const double *A, const double *B, double *C, std::size_t N,
     std::atomic<uint64_t> &pos);
 
-// Blocked column GEMM with aligned memory benchmark
+// Blocked column multi-output GEMM with aligned memory benchmark
 static void blocked_column_multi_output_aligned_gemm_bench(
     benchmark::State &s) {
   // Number Dimensions of our matrix
@@ -53,7 +53,7 @@ BENCHMARK(blocked_column_multi_output_aligned_gemm_bench)
     ->DenseRange(8, 10)
     ->Unit(benchmark::kMillisecond);
 
-// Parallel blocked column GEMM benchmark
+// Parallel blocked column multi-output GEMM benchmark
 static void parallel_blocked_column_multi_output_atomic_gemm_bench(
     benchmark::State &s) {
   // Number Dimensions of our matrix
