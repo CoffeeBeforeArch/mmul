@@ -6,11 +6,11 @@ LINKER_FLAGS = -lbenchmark -lpthread
 benchmark : blocked_gemm.o blocked_parallel_gemm.o
 	g++ benchmark.cpp blocked_gemm.o blocked_parallel_gemm.o ${CXX_FLAGS} ${LINKER_FLAGS} -o gemm_bench
 
-blocked_column_parallel_gemm.o : blocked_column_parallel_gemm.cpp
-	g++ -c blocked_column_parallel_gemm.cpp ${CXX_FLAGS}
-
 blocked_parallel_gemm.o : blocked_parallel_gemm.cpp
 	g++ -c blocked_parallel_gemm.cpp ${CXX_FLAGS}
+
+blocked_gemm.o : blocked_gemm.cpp
+	g++ -c blocked_gemm.cpp ${CXX_FLAGS}
 
 clean :
 	rm -rf gemm_bench

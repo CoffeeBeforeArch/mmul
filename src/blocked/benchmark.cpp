@@ -3,7 +3,6 @@
 #include "benchmark/benchmark.h"
 
 #include <algorithm>
-#include <atomic>
 #include <cstdlib>
 #include <random>
 #include <thread>
