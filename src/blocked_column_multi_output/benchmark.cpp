@@ -24,7 +24,8 @@ void blocked_column_multi_output_parallel_gemm(const double *A, const double *B,
                                                std::size_t tid,
                                                std::size_t stride);
 
-// Function prototype for blocked column multi-output parallel GEMM
+// Function prototype for blocked column multi-output parallel GEMM with divided
+// up columns
 void blocked_column_multi_output_parallel_col_gemm(const double *A,
                                                    const double *B, double *C,
                                                    std::size_t N,
