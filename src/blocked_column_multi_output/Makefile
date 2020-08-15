@@ -3,11 +3,8 @@
 CXX_FLAGS = -O3 -march=native -mtune=native -flto -fuse-linker-plugin --std=c++2a
 LINKER_FLAGS = -lbenchmark -lpthread
 
-benchmark : blocked_column_multi_output_gemm.o blocked_column_multi_output_parallel_atomic_gemm.o blocked_column_multi_output_parallel_gemm.o blocked_column_multi_output_parallel_col_gemm.o
-	g++ benchmark.cpp blocked_column_multi_output_gemm.o blocked_column_multi_output_parallel_atomic_gemm.o blocked_column_multi_output_parallel_gemm.o blocked_column_multi_output_parallel_col_gemm.o ${CXX_FLAGS} ${LINKER_FLAGS} -o gemm_bench
-
-blocked_column_multi_output_parallel_col_gemm.o : blocked_column_multi_output_parallel_col_gemm.cpp
-	g++ -c blocked_column_multi_output_parallel_col_gemm.cpp ${CXX_FLAGS}
+benchmark : blocked_column_multi_output_gemm.o blocked_column_multi_output_parallel_atomic_gemm.o blocked_column_multi_output_parallel_gemm.o 
+	g++ benchmark.cpp blocked_column_multi_output_gemm.o blocked_column_multi_output_parallel_atomic_gemm.o blocked_column_multi_output_parallel_gemm.o ${CXX_FLAGS} ${LINKER_FLAGS} -o gemm_bench
 
 blocked_column_multi_output_parallel_gemm.o : blocked_column_multi_output_parallel_gemm.cpp
 	g++ -c blocked_column_multi_output_parallel_gemm.cpp ${CXX_FLAGS}
