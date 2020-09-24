@@ -28,7 +28,7 @@ void blocked_column_multi_output_parallel_mmul(const double *A, const double *B,
 static void blocked_column_multi_output_aligned_mmul_bench(
     benchmark::State &s) {
   // Number Dimensions of our matrix
-  std::size_t N = (1 << s.range(0)) + 16;
+  std::size_t N = s.range(0);
 
   // Create our random number generators
   std::mt19937 rng;
@@ -56,14 +56,16 @@ static void blocked_column_multi_output_aligned_mmul_bench(
   free(C);
 }
 BENCHMARK(blocked_column_multi_output_aligned_mmul_bench)
-    ->DenseRange(8, 10)
+    ->Arg(384)
+    ->Arg(768)
+    ->Arg(1152)
     ->Unit(benchmark::kMillisecond);
 
 // Parallel blocked column multi-output GEMM benchmark w/ atomics
 static void parallel_blocked_column_multi_output_atomic_mmul_bench(
     benchmark::State &s) {
   // Number Dimensions of our matrix
-  std::size_t N = (1 << s.range(0)) + 16;
+  std::size_t N = s.range(0);
 
   // Create our random number generators
   std::mt19937 rng;
@@ -111,7 +113,9 @@ static void parallel_blocked_column_multi_output_atomic_mmul_bench(
   free(C);
 }
 BENCHMARK(parallel_blocked_column_multi_output_atomic_mmul_bench)
-    ->DenseRange(8, 10)
+    ->Arg(384)
+    ->Arg(768)
+    ->Arg(1152)
     ->Unit(benchmark::kMillisecond)
     ->UseRealTime();
 
@@ -119,7 +123,7 @@ BENCHMARK(parallel_blocked_column_multi_output_atomic_mmul_bench)
 static void parallel_blocked_column_multi_output_mmul_bench(
     benchmark::State &s) {
   // Number Dimensions of our matrix
-  std::size_t N = (1 << s.range(0)) + 16;
+  std::size_t N = s.range(0);
 
   // Create our random number generators
   std::mt19937 rng;
@@ -166,7 +170,9 @@ static void parallel_blocked_column_multi_output_mmul_bench(
   free(C);
 }
 BENCHMARK(parallel_blocked_column_multi_output_mmul_bench)
-    ->DenseRange(8, 10)
+    ->Arg(384)
+    ->Arg(768)
+    ->Arg(1152)
     ->Unit(benchmark::kMillisecond)
     ->UseRealTime();
 

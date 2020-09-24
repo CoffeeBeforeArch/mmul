@@ -16,43 +16,9 @@ void parallel_mmul(const double *A, const double *b, double *C, std::size_t N,
                    std::size_t start_row, std::size_t end_row);
 
 // Serial GEMM benchmark
-static void serial_mmul_bench_power_two(benchmark::State &s) {
-  // Number Dimensions of our matrix
-  std::size_t N = 1 << s.range(0);
-
-  // Create our random number generators
-  std::mt19937 rng;
-  rng.seed(std::random_device()());
-  std::uniform_real_distribution<double> dist(-10, 10);
-
-  // Create input matrices
-  double *A = new double[N * N];
-  double *B = new double[N * N];
-  double *C = new double[N * N];
-
-  // Initialize them with random values (and C to 0)
-  std::generate(A, A + N * N, [&] { return dist(rng); });
-  std::generate(B, B + N * N, [&] { return dist(rng); });
-  std::generate(C, C + N * N, [&] { return 0; });
-
-  // Main benchmark loop
-  for (auto _ : s) {
-    serial_mmul(A, B, C, N);
-  }
-
-  // Free memory
-  delete[] A;
-  delete[] B;
-  delete[] C;
-}
-BENCHMARK(serial_mmul_bench_power_two)
-    ->DenseRange(8, 10)
-    ->Unit(benchmark::kMillisecond);
-
-// Serial GEMM benchmark
 static void serial_mmul_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
-  std::size_t N = (1 << s.range(0)) + 16;
+  std::size_t N = s.range(0);
 
   // Create our random number generators
   std::mt19937 rng;
@@ -79,12 +45,16 @@ static void serial_mmul_bench(benchmark::State &s) {
   delete[] B;
   delete[] C;
 }
-BENCHMARK(serial_mmul_bench)->DenseRange(8, 10)->Unit(benchmark::kMillisecond);
+BENCHMARK(serial_mmul_bench)
+    ->Arg(384)
+    ->Arg(768)
+    ->Arg(1152)
+    ->Unit(benchmark::kMillisecond);
 
 // Parallel GEMM benchmark
 static void parallel_mmul_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
-  std::size_t N = (1 << s.range(0)) + 16;
+  std::size_t N = s.range(0);
 
   // Create our random number generators
   std::mt19937 rng;
@@ -135,7 +105,9 @@ static void parallel_mmul_bench(benchmark::State &s) {
   free(C);
 }
 BENCHMARK(parallel_mmul_bench)
-    ->DenseRange(8, 10)
+    ->Arg(384)
+    ->Arg(768)
+    ->Arg(1152)
     ->Unit(benchmark::kMillisecond)
     ->UseRealTime();
 

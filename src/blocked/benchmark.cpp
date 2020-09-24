@@ -19,7 +19,7 @@ void blocked_parallel_mmul(const double *A, const double *b, double *C,
 // Blocked GEMM benchmark
 static void blocked_mmul_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
-  std::size_t N = (1 << s.range(0)) + 16;
+  std::size_t N = s.range(0);
 
   // Create our random number generators
   std::mt19937 rng;
@@ -46,12 +46,16 @@ static void blocked_mmul_bench(benchmark::State &s) {
   delete[] B;
   delete[] C;
 }
-BENCHMARK(blocked_mmul_bench)->DenseRange(8, 10)->Unit(benchmark::kMillisecond);
+BENCHMARK(blocked_mmul_bench)
+    ->Arg(384)
+    ->Arg(768)
+    ->Arg(1152)
+    ->Unit(benchmark::kMillisecond);
 
 // Blocked GEMM with aligned memory benchmark
 static void blocked_aligned_mmul_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
-  std::size_t N = (1 << s.range(0)) + 16;
+  std::size_t N = s.range(0);
 
   // Create our random number generators
   std::mt19937 rng;
@@ -79,13 +83,15 @@ static void blocked_aligned_mmul_bench(benchmark::State &s) {
   free(C);
 }
 BENCHMARK(blocked_aligned_mmul_bench)
-    ->DenseRange(8, 10)
+    ->Arg(384)
+    ->Arg(768)
+    ->Arg(1152)
     ->Unit(benchmark::kMillisecond);
 
 // Parallel blocked GEMM benchmark
 static void parallel_blocked_mmul_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
-  std::size_t N = (1 << s.range(0)) + 16;
+  std::size_t N = s.range(0);
 
   // Create our random number generators
   std::mt19937 rng;
@@ -136,7 +142,9 @@ static void parallel_blocked_mmul_bench(benchmark::State &s) {
   free(C);
 }
 BENCHMARK(parallel_blocked_mmul_bench)
-    ->DenseRange(8, 10)
+    ->Arg(384)
+    ->Arg(768)
+    ->Arg(1152)
     ->Unit(benchmark::kMillisecond)
     ->UseRealTime();
 
