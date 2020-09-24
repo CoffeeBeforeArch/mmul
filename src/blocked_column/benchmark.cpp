@@ -13,11 +13,12 @@
 void blocked_column_mmul(const double *A, const double *B, double *C,
                          std::size_t N);
 
-// Function prototype for blocked column parallel GEMM w/o atomics
+// Function prototype for blocked column parallel GEMM w/ atomics
 void blocked_column_parallel_atomic_mmul(const double *A, const double *B,
                                          double *C, std::size_t N,
                                          std::atomic<uint64_t> &pos);
 
+// Fucntion prototype for blocked column parallel gemm w/o atomics
 void blocked_column_parallel_mmul(const double *A, const double *B, double *C,
                                   std::size_t N, std::size_t start_col,
                                   std::size_t end_col);
