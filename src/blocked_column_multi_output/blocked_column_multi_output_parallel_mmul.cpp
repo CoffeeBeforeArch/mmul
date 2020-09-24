@@ -5,10 +5,10 @@
 // Blocked column parallel implementation w/o atomic
 void blocked_column_multi_output_parallel_mmul(const double *A, const double *B,
                                                double *C, std::size_t N,
-                                               std::size_t tid,
-                                               std::size_t stride) {
+                                               std::size_t start_col,
+                                               std::size_t end_col) {
   // For each chunk of columns
-  for (std::size_t col_chunk = tid * 16; col_chunk < N; col_chunk += stride)
+  for (std::size_t col_chunk = start_col; col_chunk < end_col; col_chunk += 16)
     // For each chunk of rows
     for (std::size_t row_chunk = 0; row_chunk < N; row_chunk += 16)
       // For each block of elements in this row of this column chunk

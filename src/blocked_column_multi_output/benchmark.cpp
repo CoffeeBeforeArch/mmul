@@ -21,8 +21,8 @@ void blocked_column_multi_output_parallel_atomic_mmul(
 // Function prototype for blocked column multi-output parallel GEMM
 void blocked_column_multi_output_parallel_mmul(const double *A, const double *B,
                                                double *C, std::size_t N,
-                                               std::size_t tid,
-                                               std::size_t stride);
+                                               std::size_t start_col,
+                                               std::size_t end_col);
 
 // Blocked column multi-output GEMM with aligned memory benchmark
 static void blocked_column_multi_output_aligned_mmul_bench(
@@ -142,20 +142,27 @@ static void parallel_blocked_column_multi_output_mmul_bench(
 
   // Set up for launching threads
   std::size_t num_threads = std::thread::hardware_concurrency();
-  std::size_t stride = num_threads * 16;
   std::vector<std::thread> threads;
   threads.reserve(num_threads);
+
+  // Calculate values to pass to threads
+  // Assumed to be divisable by num_threads (evenly)
+  std::size_t n_cols = N / num_threads;
 
   // Main benchmark loop
   for (auto _ : s) {
     // Launch threads
+    std::size_t start_col = 0;
     for (std::size_t i = 0; i < num_threads - 1; i++) {
+      auto end_col = start_col + n_cols;
       threads.emplace_back([&] {
-        blocked_column_multi_output_parallel_mmul(A, B, C, N, i, stride);
+        blocked_column_multi_output_parallel_mmul(A, B, C, N, start_col,
+                                                  end_col);
       });
+      start_col += n_cols;
     }
-    blocked_column_multi_output_parallel_mmul(A, B, C, N, num_threads - 1,
-                                              stride);
+    blocked_column_multi_output_parallel_mmul(A, B, C, N, start_col,
+                                              start_col + n_cols);
 
     // Wait for all threads to complete
     for (auto &t : threads) t.join();
