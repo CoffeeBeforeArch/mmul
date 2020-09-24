@@ -1,12 +1,13 @@
-// Implementation of blocked column serial GEMM function
+// Implementation of blocked column parallel GEMM function
 
-#include <cstddef>
+#include <atomic>
 
-// Blocked column serial implementation
-void blocked_column_gemm(const double *A, const double *B, double *C,
-                         std::size_t N) {
-  // For each chunk of columns
-  for (std::size_t col_chunk = 0; col_chunk < N; col_chunk += 16)
+// Blocked serial implementation
+void blocked_column_parallel_atomic_mmul(const double *A, const double *B,
+                                         double *C, std::size_t N,
+                                         std::atomic<uint64_t> &pos) {
+  for (auto col_chunk = pos.fetch_add(16); col_chunk < N;
+       col_chunk = pos.fetch_add(16))
     // For each row in that chunk of columns...
     for (std::size_t row = 0; row < N; row++)
       // For each block of elements in this row of this column chunk

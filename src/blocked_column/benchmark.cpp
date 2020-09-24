@@ -10,16 +10,16 @@
 #include <vector>
 
 // Function prototype for blocked column serial GEMM
-void blocked_column_gemm(const double *A, const double *B, double *C,
+void blocked_column_mmul(const double *A, const double *B, double *C,
                          std::size_t N);
 
 // Function prototype for blocked column parallel GEMM w/o atomics
-void blocked_column_parallel_atomic_gemm(const double *A, const double *B,
+void blocked_column_parallel_atomic_mmul(const double *A, const double *B,
                                          double *C, std::size_t N,
                                          std::atomic<uint64_t> &pos);
 
 // Blocked column GEMM with aligned memory benchmark
-static void blocked_column_aligned_gemm_bench(benchmark::State &s) {
+static void blocked_column_aligned_mmul_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
   std::size_t N = (1 << s.range(0)) + 16;
 
@@ -40,7 +40,7 @@ static void blocked_column_aligned_gemm_bench(benchmark::State &s) {
 
   // Main benchmark loop
   for (auto _ : s) {
-    blocked_column_gemm(A, B, C, N);
+    blocked_column_mmul(A, B, C, N);
   }
 
   // Free memory
@@ -48,12 +48,12 @@ static void blocked_column_aligned_gemm_bench(benchmark::State &s) {
   free(B);
   free(C);
 }
-BENCHMARK(blocked_column_aligned_gemm_bench)
+BENCHMARK(blocked_column_aligned_mmul_bench)
     ->DenseRange(8, 10)
     ->Unit(benchmark::kMillisecond);
 
 // Parallel blocked column GEMM benchmark
-static void parallel_blocked_column_atomic_gemm_bench(benchmark::State &s) {
+static void parallel_blocked_column_atomic_mmul_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
   std::size_t N = (1 << s.range(0)) + 16;
 
@@ -85,9 +85,9 @@ static void parallel_blocked_column_atomic_gemm_bench(benchmark::State &s) {
     // Launch threads
     for (std::size_t i = 0; i < num_threads - 1; i++) {
       threads.emplace_back(
-          [&] { blocked_column_parallel_atomic_gemm(A, B, C, N, pos); });
+          [&] { blocked_column_parallel_atomic_mmul(A, B, C, N, pos); });
     }
-    blocked_column_parallel_atomic_gemm(A, B, C, N, pos);
+    blocked_column_parallel_atomic_mmul(A, B, C, N, pos);
 
     // Wait for all threads to complete
     for (auto &t : threads) t.join();
@@ -101,7 +101,7 @@ static void parallel_blocked_column_atomic_gemm_bench(benchmark::State &s) {
   free(B);
   free(C);
 }
-BENCHMARK(parallel_blocked_column_atomic_gemm_bench)
+BENCHMARK(parallel_blocked_column_atomic_mmul_bench)
     ->DenseRange(8, 10)
     ->Unit(benchmark::kMillisecond)
     ->UseRealTime();

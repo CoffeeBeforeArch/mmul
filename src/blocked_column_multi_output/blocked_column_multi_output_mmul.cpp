@@ -1,20 +1,18 @@
-// Implementation of blocked column multi-output parallel GEMM function
+// Implementation of blocked column multi-output serial GEMM function
 
-#include <atomic>
+#include <cstddef>
 
-// Blocked column parallel implementation w/ atomics
-void blocked_column_multi_output_parallel_atomic_gemm(
-    const double *A, const double *B, double *C, std::size_t N,
-    std::atomic<uint64_t> &pos) {
+// Blocked column multi-output serial implementation
+void blocked_column_multi_output_mmul(const double *A, const double *B,
+                                      double *C, std::size_t N) {
   // For each chunk of columns
-  for (std::size_t col_chunk = pos.fetch_add(16); col_chunk < N;
-       col_chunk = pos.fetch_add(16))
+  for (std::size_t col_chunk = 0; col_chunk < N; col_chunk += 16)
     // For each chunk of rows
     for (std::size_t row_chunk = 0; row_chunk < N; row_chunk += 16)
       // For each block of elements in this row of this column chunk
       // Solve for 16 elements at a time
       for (std::size_t tile = 0; tile < N; tile += 16)
-        // For apply that tile to each row of the row chunk
+        // Apply that tile to each row of the row chunk
         for (std::size_t row = 0; row < 16; row++)
           // For each row in the tile
           for (std::size_t tile_row = 0; tile_row < 16; tile_row++)

@@ -3,7 +3,7 @@
 #include <cstddef>
 
 // Serial implementation
-void serial_gemm(const double *A, const double *B, double *C, std::size_t N) {
+void serial_mmul(const double *A, const double *B, double *C, std::size_t N) {
   // For each row...
   for (std::size_t row = 0; row < N; row++)
     // For each col...

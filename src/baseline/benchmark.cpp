@@ -9,14 +9,14 @@
 #include <vector>
 
 // Function prototype for serial GEMM
-void serial_gemm(const double *A, const double *B, double *C, std::size_t N);
+void serial_mmul(const double *A, const double *B, double *C, std::size_t N);
 
 // Function for naive parallelized GEMM
-void parallel_gemm(const double *A, const double *b, double *C, std::size_t N,
+void parallel_mmul(const double *A, const double *b, double *C, std::size_t N,
                    std::size_t start_row, std::size_t end_row);
 
 // Serial GEMM benchmark
-static void serial_gemm_bench_power_two(benchmark::State &s) {
+static void serial_mmul_bench_power_two(benchmark::State &s) {
   // Number Dimensions of our matrix
   std::size_t N = 1 << s.range(0);
 
@@ -37,7 +37,7 @@ static void serial_gemm_bench_power_two(benchmark::State &s) {
 
   // Main benchmark loop
   for (auto _ : s) {
-    serial_gemm(A, B, C, N);
+    serial_mmul(A, B, C, N);
   }
 
   // Free memory
@@ -45,12 +45,12 @@ static void serial_gemm_bench_power_two(benchmark::State &s) {
   delete[] B;
   delete[] C;
 }
-BENCHMARK(serial_gemm_bench_power_two)
+BENCHMARK(serial_mmul_bench_power_two)
     ->DenseRange(8, 10)
     ->Unit(benchmark::kMillisecond);
 
 // Serial GEMM benchmark
-static void serial_gemm_bench(benchmark::State &s) {
+static void serial_mmul_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
   std::size_t N = (1 << s.range(0)) + 16;
 
@@ -71,7 +71,7 @@ static void serial_gemm_bench(benchmark::State &s) {
 
   // Main benchmark loop
   for (auto _ : s) {
-    serial_gemm(A, B, C, N);
+    serial_mmul(A, B, C, N);
   }
 
   // Free memory
@@ -79,10 +79,10 @@ static void serial_gemm_bench(benchmark::State &s) {
   delete[] B;
   delete[] C;
 }
-BENCHMARK(serial_gemm_bench)->DenseRange(8, 10)->Unit(benchmark::kMillisecond);
+BENCHMARK(serial_mmul_bench)->DenseRange(8, 10)->Unit(benchmark::kMillisecond);
 
 // Parallel GEMM benchmark
-static void parallel_gemm_bench(benchmark::State &s) {
+static void parallel_mmul_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
   std::size_t N = (1 << s.range(0)) + 16;
 
@@ -118,9 +118,9 @@ static void parallel_gemm_bench(benchmark::State &s) {
       auto start_row = i * n_rows;
       end_row = start_row + n_rows;
       threads.emplace_back(
-          [&] { parallel_gemm(A, B, C, N, start_row, end_row); });
+          [&] { parallel_mmul(A, B, C, N, start_row, end_row); });
     }
-    parallel_gemm(A, B, C, N, end_row, end_row + n_rows);
+    parallel_mmul(A, B, C, N, end_row, end_row + n_rows);
 
     // Wait for all threads to complete
     for (auto &t : threads) t.join();
@@ -134,7 +134,7 @@ static void parallel_gemm_bench(benchmark::State &s) {
   free(B);
   free(C);
 }
-BENCHMARK(parallel_gemm_bench)
+BENCHMARK(parallel_mmul_bench)
     ->DenseRange(8, 10)
     ->Unit(benchmark::kMillisecond)
     ->UseRealTime();

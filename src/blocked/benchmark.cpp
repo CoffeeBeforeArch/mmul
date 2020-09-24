@@ -9,15 +9,15 @@
 #include <vector>
 
 // Function prototype for blocked GEMM
-void blocked_gemm(const double *A, const double *B, double *C, std::size_t N);
+void blocked_mmul(const double *A, const double *B, double *C, std::size_t N);
 
 // Function for blocked parallelized GEMM
-void blocked_parallel_gemm(const double *A, const double *b, double *C,
+void blocked_parallel_mmul(const double *A, const double *b, double *C,
                            std::size_t N, std::size_t start_row,
                            std::size_t end_row);
 
 // Blocked GEMM benchmark
-static void blocked_gemm_bench(benchmark::State &s) {
+static void blocked_mmul_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
   std::size_t N = (1 << s.range(0)) + 16;
 
@@ -38,7 +38,7 @@ static void blocked_gemm_bench(benchmark::State &s) {
 
   // Main benchmark loop
   for (auto _ : s) {
-    blocked_gemm(A, B, C, N);
+    blocked_mmul(A, B, C, N);
   }
 
   // Free memory
@@ -46,10 +46,10 @@ static void blocked_gemm_bench(benchmark::State &s) {
   delete[] B;
   delete[] C;
 }
-BENCHMARK(blocked_gemm_bench)->DenseRange(8, 10)->Unit(benchmark::kMillisecond);
+BENCHMARK(blocked_mmul_bench)->DenseRange(8, 10)->Unit(benchmark::kMillisecond);
 
 // Blocked GEMM with aligned memory benchmark
-static void blocked_aligned_gemm_bench(benchmark::State &s) {
+static void blocked_aligned_mmul_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
   std::size_t N = (1 << s.range(0)) + 16;
 
@@ -70,7 +70,7 @@ static void blocked_aligned_gemm_bench(benchmark::State &s) {
 
   // Main benchmark loop
   for (auto _ : s) {
-    blocked_gemm(A, B, C, N);
+    blocked_mmul(A, B, C, N);
   }
 
   // Free memory
@@ -78,12 +78,12 @@ static void blocked_aligned_gemm_bench(benchmark::State &s) {
   free(B);
   free(C);
 }
-BENCHMARK(blocked_aligned_gemm_bench)
+BENCHMARK(blocked_aligned_mmul_bench)
     ->DenseRange(8, 10)
     ->Unit(benchmark::kMillisecond);
 
 // Parallel blocked GEMM benchmark
-static void parallel_blocked_gemm_bench(benchmark::State &s) {
+static void parallel_blocked_mmul_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
   std::size_t N = (1 << s.range(0)) + 16;
 
@@ -119,9 +119,9 @@ static void parallel_blocked_gemm_bench(benchmark::State &s) {
       auto start_row = i * n_rows;
       end_row = start_row + n_rows;
       threads.emplace_back(
-          [&] { blocked_parallel_gemm(A, B, C, N, start_row, end_row); });
+          [&] { blocked_parallel_mmul(A, B, C, N, start_row, end_row); });
     }
-    blocked_parallel_gemm(A, B, C, N, end_row, end_row + n_rows);
+    blocked_parallel_mmul(A, B, C, N, end_row, end_row + n_rows);
 
     // Wait for all threads to complete
     for (auto &t : threads) t.join();
@@ -135,7 +135,7 @@ static void parallel_blocked_gemm_bench(benchmark::State &s) {
   free(B);
   free(C);
 }
-BENCHMARK(parallel_blocked_gemm_bench)
+BENCHMARK(parallel_blocked_mmul_bench)
     ->DenseRange(8, 10)
     ->Unit(benchmark::kMillisecond)
     ->UseRealTime();

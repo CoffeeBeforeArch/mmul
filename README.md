@@ -17,31 +17,31 @@ The following section breaks down the benchmarks contained in each subdirectory.
 
 ### Baseline
 
-- `serial_gemm_bench_power_two`
+- `serial_mmul_bench_power_two`
   - A motivating example for not using a power-of-two input dimension
-- `serial_gemm_bench`
-  - Baseline serial gemm implementation (using the classical triply-nested for loop)
-- `parallel_gemm_bench`
-  - Baseline parallel gemm implementation (splits rows of output matrix across threads)
+- `serial_mmul_bench`
+  - Baseline serial mmul implementation (using the classical triply-nested for loop)
+- `parallel_mmul_bench`
+  - Baseline parallel mmul implementation (splits rows of output matrix across threads)
 
 ### Blocked
-- `blocked_gemm_bench`
-  - A serial gemm implementation which processes a block of elements at a time to exploit locality in the B matrix
-- `blocked_aligned_gemm_bench`
-  - Same as `blocked_gemm_bench` but using 64-byte aligned allocations to prevent blocks from spanning cache lines
-- `parallel_blocked_gemm_bench`
-  - A parallel blocked gemm implementation (splits rows of output matrix across threads)
+- `blocked_mmul_bench`
+  - A serial mmul implementation which processes a block of elements at a time to exploit locality in the B matrix
+- `blocked_aligned_mmul_bench`
+  - Same as `blocked_mmul_bench` but using 64-byte aligned allocations to prevent blocks from spanning cache lines
+- `parallel_blocked_mmul_bench`
+  - A parallel blocked mmul implementation (splits rows of output matrix across threads)
 
 ### Blocked Column
-- `blocked_column_aligned_gemm_bench`
-  - A serial gemm implementation which processes a block of elements at a time, but traverses output blocks of elements in column-major order to exploit locality in the columns of B between blocks of output elements
-- `parallel_blocked_column_atomic_gemm_bench`
+- `blocked_column_aligned_mmul_bench`
+  - A serial mmul implementation which processes a block of elements at a time, but traverses output blocks of elements in column-major order to exploit locality in the columns of B between blocks of output elements
+- `parallel_blocked_column_atomic_mmul_bench`
   - A parallel blocked column implementation (splits columns between threads) where each thread uses an atomic fetch+add to get a new chunk of columns to process
 
 ### Blocked Column Multi Output
-- `blocked_column_multi_output_aligned_gemm_bench`
-  - A serial gemm implementation which processes a tile of output elements at a time, exploiting locality from each tile of B across output tile elements
-- `parallel_blocked_column_multi_output_atomic_gemm_bench`
+- `blocked_column_multi_output_aligned_mmul_bench`
+  - A serial mmul implementation which processes a tile of output elements at a time, exploiting locality from each tile of B across output tile elements
+- `parallel_blocked_column_multi_output_atomic_mmul_bench`
   - A parallel blocked column multi output implementation (splits columns between threads) where each thread uses an atomic fetch+add to get a new chunk of columns to process
 
 ## Contact Information
