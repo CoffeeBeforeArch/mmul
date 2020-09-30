@@ -1,4 +1,4 @@
-// Implementation of blocked column parallel GEMM function
+// Implementation of blocked column parallel MMul function
 
 #include <atomic>
 

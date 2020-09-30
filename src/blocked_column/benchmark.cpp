@@ -1,4 +1,4 @@
-// Main benchmark function of GEMM
+// Main benchmark function of MMul
 
 #include "benchmark/benchmark.h"
 
@@ -9,11 +9,11 @@
 #include <thread>
 #include <vector>
 
-// Function prototype for blocked column serial GEMM
+// Function prototype for blocked column serial MMul
 void blocked_column_mmul(const double *A, const double *B, double *C,
                          std::size_t N);
 
-// Function prototype for blocked column parallel GEMM w/ atomics
+// Function prototype for blocked column parallel MMul w/ atomics
 void blocked_column_parallel_atomic_mmul(const double *A, const double *B,
                                          double *C, std::size_t N,
                                          std::atomic<uint64_t> &pos);
@@ -23,7 +23,7 @@ void blocked_column_parallel_mmul(const double *A, const double *B, double *C,
                                   std::size_t N, std::size_t start_col,
                                   std::size_t end_col);
 
-// Blocked column GEMM with aligned memory benchmark
+// Blocked column MMul with aligned memory benchmark
 static void blocked_column_aligned_mmul_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
   std::size_t N = s.range(0);
@@ -59,7 +59,7 @@ BENCHMARK(blocked_column_aligned_mmul_bench)
     ->Arg(1152)
     ->Unit(benchmark::kMillisecond);
 
-// Parallel GEMM benchmark
+// Parallel MMul benchmark
 static void parallel_blocked_column_mmul_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
   std::size_t N = s.range(0);
@@ -120,7 +120,7 @@ BENCHMARK(parallel_blocked_column_mmul_bench)
     ->Unit(benchmark::kMillisecond)
     ->UseRealTime();
 
-// Parallel blocked column GEMM benchmark
+// Parallel blocked column MMul benchmark
 static void parallel_blocked_column_atomic_mmul_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
   std::size_t N = s.range(0);

@@ -1,4 +1,4 @@
-# Matrix Multiplication (GEMM) Beenchmarks
+# Matrix Multiplication (MMul) Beenchmarks
 
 This repository contains a number of serial and parallel benchmarks for matrix multiplication in C++. Matrix multiplication is a wonderful first operation to try your hand at optimizing for the following reasons:
 

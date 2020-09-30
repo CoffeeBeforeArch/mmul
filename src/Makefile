@@ -1,4 +1,4 @@
-# A simple makefile for GEMM benchmarks
+# A simple makefile for MMul benchmarks
 
 TOPTARGETS := all clean
 

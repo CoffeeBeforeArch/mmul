@@ -1,4 +1,4 @@
-# A simple makefile for GEMM benchmarks
+# A simple makefile for MMul benchmarks
 
 CXX_FLAGS = -O3 -march=native -mtune=native -flto -fuse-linker-plugin --std=c++2a
 LINKER_FLAGS = -lbenchmark -lpthread

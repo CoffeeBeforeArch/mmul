@@ -1,4 +1,4 @@
-// A DGEMM reference implementation using MKL
+// A DMMul reference implementation using MKL
 
 #include <algorithm>
 #include <random>
@@ -6,7 +6,7 @@
 #include "benchmark/benchmark.h"
 #include "mkl/mkl.h"
 
-// Blocked GEMM benchmark
+// Blocked MMul benchmark
 static void blocked_mmul_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
   std::size_t N = s.range(0);
@@ -21,7 +21,7 @@ static void blocked_mmul_bench(benchmark::State &s) {
   double *B = (double *)mkl_malloc(N * N * sizeof(double), 64);
   double *C = (double *)mkl_malloc(N * N * sizeof(double), 64);
 
-  // GEMM scaling constants
+  // MMul scaling constants
   double alpha = 1.0;
   double beta = 0.0;
 

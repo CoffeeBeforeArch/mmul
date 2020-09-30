@@ -1,4 +1,4 @@
-// Implementation of blocked column multi-output serial GEMM function
+// Implementation of blocked column multi-output serial MMul function
 
 #include <cstddef>
 

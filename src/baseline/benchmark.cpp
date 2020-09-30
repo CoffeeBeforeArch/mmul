@@ -1,4 +1,5 @@
-// Main benchmark function of GEMM
+// Main benchmark function of MMul
+// By: Nick from CoffeeBeforeArch
 
 #include "benchmark/benchmark.h"
 
@@ -8,14 +9,14 @@
 #include <thread>
 #include <vector>
 
-// Function prototype for serial GEMM
+// Function prototype for serial MMul
 void serial_mmul(const double *A, const double *B, double *C, std::size_t N);
 
-// Function for naive parallelized GEMM
+// Function for naive parallel MMul
 void parallel_mmul(const double *A, const double *b, double *C, std::size_t N,
                    std::size_t start_row, std::size_t end_row);
 
-// Serial GEMM benchmark
+// Serial MMul benchmark
 static void serial_mmul_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
   std::size_t N = s.range(0);
@@ -51,7 +52,7 @@ BENCHMARK(serial_mmul_bench)
     ->Arg(1152)
     ->Unit(benchmark::kMillisecond);
 
-// Parallel GEMM benchmark
+// Parallel MMul benchmark
 static void parallel_mmul_bench(benchmark::State &s) {
   // Number Dimensions of our matrix
   std::size_t N = s.range(0);

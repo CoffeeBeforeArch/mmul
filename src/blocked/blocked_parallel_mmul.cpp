@@ -1,4 +1,4 @@
-// Implementation of blocked parallel GEMM function
+// Implementation of blocked parallel MMul function
 
 #include <cstddef>
 

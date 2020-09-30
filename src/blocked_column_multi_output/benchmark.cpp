@@ -1,4 +1,4 @@
-// Main benchmark function of GEMM
+// Main benchmark function of MMul
 
 #include "benchmark/benchmark.h"
 
@@ -9,22 +9,22 @@
 #include <thread>
 #include <vector>
 
-// Function prototype for blocked column multi-output serial GEMM
+// Function prototype for blocked column multi-output serial MMul
 void blocked_column_multi_output_mmul(const double *A, const double *B,
                                       double *C, std::size_t N);
 
-// Function prototype for blocked column multi-output parallel GEMM
+// Function prototype for blocked column multi-output parallel MMul
 void blocked_column_multi_output_parallel_atomic_mmul(
     const double *A, const double *B, double *C, std::size_t N,
     std::atomic<uint64_t> &pos);
 
-// Function prototype for blocked column multi-output parallel GEMM
+// Function prototype for blocked column multi-output parallel MMul
 void blocked_column_multi_output_parallel_mmul(const double *A, const double *B,
                                                double *C, std::size_t N,
                                                std::size_t start_col,
                                                std::size_t end_col);
 
-// Blocked column multi-output GEMM with aligned memory benchmark
+// Blocked column multi-output MMul with aligned memory benchmark
 static void blocked_column_multi_output_aligned_mmul_bench(
     benchmark::State &s) {
   // Number Dimensions of our matrix
@@ -61,7 +61,7 @@ BENCHMARK(blocked_column_multi_output_aligned_mmul_bench)
     ->Arg(1152)
     ->Unit(benchmark::kMillisecond);
 
-// Parallel blocked column multi-output GEMM benchmark w/ atomics
+// Parallel blocked column multi-output MMul benchmark w/ atomics
 static void parallel_blocked_column_multi_output_atomic_mmul_bench(
     benchmark::State &s) {
   // Number Dimensions of our matrix
@@ -119,7 +119,7 @@ BENCHMARK(parallel_blocked_column_multi_output_atomic_mmul_bench)
     ->Unit(benchmark::kMillisecond)
     ->UseRealTime();
 
-// Parallel blocked column multi-output GEMM benchmark w/o atomics
+// Parallel blocked column multi-output MMul benchmark w/o atomics
 static void parallel_blocked_column_multi_output_mmul_bench(
     benchmark::State &s) {
   // Number Dimensions of our matrix

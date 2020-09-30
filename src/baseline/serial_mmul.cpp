@@ -1,4 +1,4 @@
-// Implementation of serial GEMM function
+// Implementation of serial MMul function
 
 #include <cstddef>
 
