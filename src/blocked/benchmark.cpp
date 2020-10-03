@@ -11,14 +11,14 @@
 // Function prototype for blocked MMul
 void blocked_mmul(const double *A, const double *B, double *C, std::size_t N);
 
-// Function for blocked parallelized MMul
+// Function prototype for blocked parallel MMul
 void blocked_parallel_mmul(const double *A, const double *b, double *C,
                            std::size_t N, std::size_t start_row,
                            std::size_t end_row);
 
 // Blocked MMul benchmark
 static void blocked_mmul_bench(benchmark::State &s) {
-  // Number Dimensions of our matrix
+  // Dimensions of our matrix
   std::size_t N = s.range(0);
 
   // Create our random number generators
@@ -54,7 +54,7 @@ BENCHMARK(blocked_mmul_bench)
 
 // Blocked MMul with aligned memory benchmark
 static void blocked_aligned_mmul_bench(benchmark::State &s) {
-  // Number Dimensions of our matrix
+  // Dimensions of our matrix
   std::size_t N = s.range(0);
 
   // Create our random number generators
@@ -90,7 +90,7 @@ BENCHMARK(blocked_aligned_mmul_bench)
 
 // Parallel blocked MMul benchmark
 static void parallel_blocked_mmul_bench(benchmark::State &s) {
-  // Number Dimensions of our matrix
+  // Dimensions of our matrix
   std::size_t N = s.range(0);
 
   // Create our random number generators
