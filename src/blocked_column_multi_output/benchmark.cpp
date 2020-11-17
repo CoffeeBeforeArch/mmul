@@ -8,15 +8,49 @@
 #include <thread>
 #include <vector>
 
-// Function prototype for blocked column multi-output serial MMul
-void blocked_column_multi_output_mmul(const float *A, const float *B,
-                                      float *C, std::size_t N);
+// Blocked column multi-output serial implementation
+void blocked_column_multi_output_mmul(const float *A, const float *B, float *C,
+                                      std::size_t N) {
+  // For each chunk of columns
+  for (std::size_t col_chunk = 0; col_chunk < N; col_chunk += 16)
+    // For each chunk of rows
+    for (std::size_t row_chunk = 0; row_chunk < N; row_chunk += 16)
+      // For each block of elements in this row of this column chunk
+      // Solve for 16 elements at a time
+      for (std::size_t tile = 0; tile < N; tile += 16)
+        // Apply that tile to each row of the row chunk
+        for (std::size_t row = 0; row < 16; row++)
+          // For each row in the tile
+          for (std::size_t tile_row = 0; tile_row < 16; tile_row++)
+            // Solve for each element in this tile row
+            for (std::size_t idx = 0; idx < 16; idx++)
+              C[(row + row_chunk) * N + col_chunk + idx] +=
+                  A[(row + row_chunk) * N + tile + tile_row] *
+                  B[tile * N + tile_row * N + col_chunk + idx];
+}
 
-// Function prototype for blocked column multi-output parallel MMul
+// Blocked column parallel implementation w/o atomic
 void blocked_column_multi_output_parallel_mmul(const float *A, const float *B,
                                                float *C, std::size_t N,
                                                std::size_t start_col,
-                                               std::size_t end_col);
+                                               std::size_t end_col) {
+  // For each chunk of columns
+  for (std::size_t col_chunk = start_col; col_chunk < end_col; col_chunk += 16)
+    // For each chunk of rows
+    for (std::size_t row_chunk = 0; row_chunk < N; row_chunk += 16)
+      // For each block of elements in this row of this column chunk
+      // Solve for 16 elements at a time
+      for (std::size_t tile = 0; tile < N; tile += 16)
+        // For apply that tile to each row of the row chunk
+        for (std::size_t row = 0; row < 16; row++)
+          // For each row in the tile
+          for (std::size_t tile_row = 0; tile_row < 16; tile_row++)
+            // Solve for each element in this tile row
+            for (std::size_t idx = 0; idx < 16; idx++)
+              C[(row + row_chunk) * N + col_chunk + idx] +=
+                  A[(row + row_chunk) * N + tile + tile_row] *
+                  B[tile * N + tile_row * N + col_chunk + idx];
+}
 
 // Blocked column multi-output MMul with aligned memory benchmark
 static void blocked_column_multi_output_aligned_mmul_bench(
@@ -37,7 +71,7 @@ static void blocked_column_multi_output_aligned_mmul_bench(
   // Initialize them with random values (and C to 0)
   std::generate(A, A + N * N, [&] { return dist(rng); });
   std::generate(B, B + N * N, [&] { return dist(rng); });
-  std::generate(C, C + N * N, [&] { return 0; });
+  std::generate(C, C + N * N, [&] { return 0.0f; });
 
   // Main benchmark loop
   for (auto _ : s) {
@@ -74,7 +108,7 @@ static void parallel_blocked_column_multi_output_mmul_bench(
   // Initialize them with random values (and C to 0)
   std::generate(A, A + N * N, [&] { return dist(rng); });
   std::generate(B, B + N * N, [&] { return dist(rng); });
-  std::generate(C, C + N * N, [&] { return 0; });
+  std::generate(C, C + N * N, [&] { return 0.0f; });
 
   // Set up for launching threads
   std::size_t num_threads = std::thread::hardware_concurrency();
@@ -89,7 +123,7 @@ static void parallel_blocked_column_multi_output_mmul_bench(
   for (auto _ : s) {
     // Launch threads
     std::size_t start_col = 0;
-    for (std::size_t i = 0; i < num_threads - 1; i++) {
+    for (std::size_t i = 0; i < num_threads; i++) {
       auto end_col = start_col + n_cols;
       threads.emplace_back([&] {
         blocked_column_multi_output_parallel_mmul(A, B, C, N, start_col,
@@ -97,8 +131,6 @@ static void parallel_blocked_column_multi_output_mmul_bench(
       });
       start_col += n_cols;
     }
-    blocked_column_multi_output_parallel_mmul(A, B, C, N, start_col,
-                                              start_col + n_cols);
 
     // Wait for all threads to complete
     for (auto &t : threads) t.join();
