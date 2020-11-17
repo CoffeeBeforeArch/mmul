@@ -3,8 +3,8 @@
 #include <cstddef>
 
 // Blocked column parallel implementation w/o atomic
-void blocked_column_multi_output_parallel_mmul(const double *A, const double *B,
-                                               double *C, std::size_t N,
+void blocked_column_multi_output_parallel_mmul(const float *A, const float *B,
+                                               float *C, std::size_t N,
                                                std::size_t start_col,
                                                std::size_t end_col) {
   // For each chunk of columns

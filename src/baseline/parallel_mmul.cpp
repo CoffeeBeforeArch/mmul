@@ -3,7 +3,7 @@
 #include <cstddef>
 
 // Parallel implementation
-void parallel_mmul(const double *A, const double *B, double *C, std::size_t N,
+void parallel_mmul(const float *A, const float *B, float *C, std::size_t N,
                    std::size_t start_row, std::size_t end_row) {
   // For each row assigned to this thread...
   for (std::size_t row = start_row; row < end_row; row++)

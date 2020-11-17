@@ -3,7 +3,7 @@
 #include <cstddef>
 
 // Blocked serial implementation
-void blocked_mmul(const double *A, const double *B, double *C, std::size_t N) {
+void blocked_mmul(const float *A, const float *B, float *C, std::size_t N) {
   // For each row...
   for (std::size_t row = 0; row < N; row++)
     // For each block in the row...

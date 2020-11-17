@@ -3,8 +3,8 @@
 #include <cstddef>
 
 // Blocked column multi-output serial implementation
-void blocked_column_multi_output_mmul(const double *A, const double *B,
-                                      double *C, std::size_t N) {
+void blocked_column_multi_output_mmul(const float *A, const float *B,
+                                      float *C, std::size_t N) {
   // For each chunk of columns
   for (std::size_t col_chunk = 0; col_chunk < N; col_chunk += 16)
     // For each chunk of rows

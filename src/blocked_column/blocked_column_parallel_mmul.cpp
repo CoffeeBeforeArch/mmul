@@ -3,7 +3,7 @@
 #include <atomic>
 
 // Blocked serial implementation
-void blocked_column_parallel_mmul(const double *A, const double *B, double *C,
+void blocked_column_parallel_mmul(const float *A, const float *B, float *C,
                                   std::size_t N, std::size_t start_col,
                                   std::size_t end_col) {
   for (auto col_chunk = start_col; col_chunk < end_col; col_chunk += 16)

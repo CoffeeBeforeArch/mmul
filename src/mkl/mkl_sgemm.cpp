@@ -14,16 +14,16 @@ static void blocked_mmul_bench(benchmark::State &s) {
   // Create our random number generators
   std::mt19937 rng;
   rng.seed(std::random_device()());
-  std::uniform_real_distribution<double> dist(-10, 10);
+  std::uniform_real_distribution<float> dist(-10, 10);
 
   // Create input matrices
-  double *A = (double *)mkl_malloc(N * N * sizeof(double), 64);
-  double *B = (double *)mkl_malloc(N * N * sizeof(double), 64);
-  double *C = (double *)mkl_malloc(N * N * sizeof(double), 64);
+  float *A = (float *)mkl_malloc(N * N * sizeof(float), 64);
+  float *B = (float *)mkl_malloc(N * N * sizeof(float), 64);
+  float *C = (float *)mkl_malloc(N * N * sizeof(float), 64);
 
   // MMul scaling constants
-  double alpha = 1.0;
-  double beta = 0.0;
+  float alpha = 1.0;
+  float beta = 0.0;
 
   // Initialize them with random values (and C to 0)
   std::generate(A, A + N * N, [&] { return dist(rng); });
@@ -32,7 +32,7 @@ static void blocked_mmul_bench(benchmark::State &s) {
 
   // Main benchmark loop
   for (auto _ : s) {
-    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, N, N, N, alpha, A, N,
+    cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, N, N, N, alpha, A, N,
                 B, N, beta, C, N);
   }
 

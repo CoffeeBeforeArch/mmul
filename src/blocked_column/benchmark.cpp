@@ -10,11 +10,11 @@
 #include <vector>
 
 // Function prototype for blocked column serial MMul
-void blocked_column_mmul(const double *A, const double *B, double *C,
+void blocked_column_mmul(const float *A, const float *B, float *C,
                          std::size_t N);
 
 // Fucntion prototype for blocked column parallel MMul
-void blocked_column_parallel_mmul(const double *A, const double *B, double *C,
+void blocked_column_parallel_mmul(const float *A, const float *B, float *C,
                                   std::size_t N, std::size_t start_col,
                                   std::size_t end_col);
 
@@ -26,12 +26,12 @@ static void blocked_column_aligned_mmul_bench(benchmark::State &s) {
   // Create our random number generators
   std::mt19937 rng;
   rng.seed(std::random_device()());
-  std::uniform_real_distribution<double> dist(-10, 10);
+  std::uniform_real_distribution<float> dist(-10, 10);
 
   // Create input matrices
-  double *A = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
-  double *B = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
-  double *C = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
+  float *A = static_cast<float *>(aligned_alloc(64, N * N * sizeof(float)));
+  float *B = static_cast<float *>(aligned_alloc(64, N * N * sizeof(float)));
+  float *C = static_cast<float *>(aligned_alloc(64, N * N * sizeof(float)));
 
   // Initialize them with random values (and C to 0)
   std::generate(A, A + N * N, [&] { return dist(rng); });
@@ -62,12 +62,12 @@ static void parallel_blocked_column_mmul_bench(benchmark::State &s) {
   // Create our random number generators
   std::mt19937 rng;
   rng.seed(std::random_device()());
-  std::uniform_real_distribution<double> dist(-10, 10);
+  std::uniform_real_distribution<float> dist(-10, 10);
 
   // Create input matrices
-  double *A = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
-  double *B = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
-  double *C = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
+  float *A = static_cast<float *>(aligned_alloc(64, N * N * sizeof(float)));
+  float *B = static_cast<float *>(aligned_alloc(64, N * N * sizeof(float)));
+  float *C = static_cast<float *>(aligned_alloc(64, N * N * sizeof(float)));
 
   // Initialize them with random values (and C to 0)
   std::generate(A, A + N * N, [&] { return dist(rng); });

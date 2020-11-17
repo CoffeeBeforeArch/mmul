@@ -10,10 +10,10 @@
 #include <vector>
 
 // Function prototype for serial MMul
-void serial_mmul(const double *A, const double *B, double *C, std::size_t N);
+void serial_mmul(const float *A, const float *B, float *C, std::size_t N);
 
 // Function for naive parallel MMul
-void parallel_mmul(const double *A, const double *b, double *C, std::size_t N,
+void parallel_mmul(const float *A, const float *b, float *C, std::size_t N,
                    std::size_t start_row, std::size_t end_row);
 
 // Serial MMul benchmark
@@ -24,12 +24,12 @@ static void serial_mmul_bench(benchmark::State &s) {
   // Create our random number generators
   std::mt19937 rng;
   rng.seed(std::random_device()());
-  std::uniform_real_distribution<double> dist(-10, 10);
+  std::uniform_real_distribution<float> dist(-10, 10);
 
   // Create input matrices
-  double *A = new double[N * N];
-  double *B = new double[N * N];
-  double *C = new double[N * N];
+  float *A = new float[N * N];
+  float *B = new float[N * N];
+  float *C = new float[N * N];
 
   // Initialize them with random values (and C to 0)
   std::generate(A, A + N * N, [&] { return dist(rng); });
@@ -60,12 +60,12 @@ static void parallel_mmul_bench(benchmark::State &s) {
   // Create our random number generators
   std::mt19937 rng;
   rng.seed(std::random_device()());
-  std::uniform_real_distribution<double> dist(-10, 10);
+  std::uniform_real_distribution<float> dist(-10, 10);
 
   // Create input matrices
-  double *A = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
-  double *B = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
-  double *C = static_cast<double *>(aligned_alloc(64, N * N * sizeof(double)));
+  float *A = static_cast<float *>(aligned_alloc(64, N * N * sizeof(float)));
+  float *B = static_cast<float *>(aligned_alloc(64, N * N * sizeof(float)));
+  float *C = static_cast<float *>(aligned_alloc(64, N * N * sizeof(float)));
 
   // Initialize them with random values (and C to 0)
   std::generate(A, A + N * N, [&] { return dist(rng); });
