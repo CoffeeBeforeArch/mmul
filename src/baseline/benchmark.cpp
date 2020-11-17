@@ -9,12 +9,30 @@
 #include <thread>
 #include <vector>
 
-// Function prototype for serial MMul
-void serial_mmul(const float *A, const float *B, float *C, std::size_t N);
+// Serial implementation
+void serial_mmul(const float *A, const float *B, float *C, std::size_t N) {
+  // For each row...
+  for (std::size_t row = 0; row < N; row++)
+    // For each col...
+    for (std::size_t col = 0; col < N; col++)
+      // For each element in the row/col pair...
+      for (std::size_t idx = 0; idx < N; idx++)
+        // Accumulate the partial results
+        C[row * N + col] += A[row * N + idx] * B[idx * N + col];
+}
 
-// Function for naive parallel MMul
-void parallel_mmul(const float *A, const float *b, float *C, std::size_t N,
-                   std::size_t start_row, std::size_t end_row);
+// Parallel implementation
+void parallel_mmul(const float *A, const float *B, float *C, std::size_t N,
+                   std::size_t start_row, std::size_t end_row) {
+  // For each row assigned to this thread...
+  for (std::size_t row = start_row; row < end_row; row++)
+    // For each column...
+    for (std::size_t col = 0; col < N; col++)
+      // For each element in the row-col pair...
+      for (std::size_t idx = 0; idx < N; idx++)
+        // Accumulate the partial results
+        C[row * N + col] += A[row * N + idx] * B[idx * N + col];
+}
 
 // Serial MMul benchmark
 static void serial_mmul_bench(benchmark::State &s) {
@@ -34,7 +52,7 @@ static void serial_mmul_bench(benchmark::State &s) {
   // Initialize them with random values (and C to 0)
   std::generate(A, A + N * N, [&] { return dist(rng); });
   std::generate(B, B + N * N, [&] { return dist(rng); });
-  std::generate(C, C + N * N, [&] { return 0; });
+  std::generate(C, C + N * N, [&] { return 0.0f; });
 
   // Main benchmark loop
   for (auto _ : s) {
@@ -63,14 +81,14 @@ static void parallel_mmul_bench(benchmark::State &s) {
   std::uniform_real_distribution<float> dist(-10, 10);
 
   // Create input matrices
-  float *A = static_cast<float *>(aligned_alloc(64, N * N * sizeof(float)));
-  float *B = static_cast<float *>(aligned_alloc(64, N * N * sizeof(float)));
-  float *C = static_cast<float *>(aligned_alloc(64, N * N * sizeof(float)));
+  float *A = new float[N * N];
+  float *B = new float[N * N];
+  float *C = new float[N * N];
 
   // Initialize them with random values (and C to 0)
   std::generate(A, A + N * N, [&] { return dist(rng); });
   std::generate(B, B + N * N, [&] { return dist(rng); });
-  std::generate(C, C + N * N, [&] { return 0; });
+  std::generate(C, C + N * N, [&] { return 0.0f; });
 
   // Set up for launching threads
   std::size_t num_threads = std::thread::hardware_concurrency();
@@ -91,7 +109,6 @@ static void parallel_mmul_bench(benchmark::State &s) {
       threads.emplace_back(
           [&] { parallel_mmul(A, B, C, N, start_row, end_row); });
     }
-    parallel_mmul(A, B, C, N, end_row, end_row + n_rows);
 
     // Wait for all threads to complete
     for (auto &t : threads) t.join();
