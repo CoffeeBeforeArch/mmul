@@ -8,13 +8,43 @@
 #include <thread>
 #include <vector>
 
-// Function prototype for blocked MMul
-void blocked_mmul(const float *A, const float *B, float *C, std::size_t N);
+// Blocked serial implementation
+void blocked_mmul(const float *A, const float *B, float *C, std::size_t N) {
+  // For each row...
+  for (std::size_t row = 0; row < N; row++)
+    // For each block in the row...
+    // Solve for 16 elements at a time
+    for (std::size_t block = 0; block < N; block += 16)
+      // For each chunk of A/B for this block
+      for (std::size_t chunk = 0; chunk < N; chunk += 16)
+        // For each row in the chunk
+        for (std::size_t sub_chunk = 0; sub_chunk < 16; sub_chunk++)
+          // Go through all the elements in the sub chunk
+          for (std::size_t idx = 0; idx < 16; idx++)
+            C[row * N + block + idx] +=
+                A[row * N + chunk + sub_chunk] *
+                B[chunk * N + sub_chunk * N + block + idx];
+}
 
-// Function prototype for blocked parallel MMul
-void blocked_parallel_mmul(const float *A, const float *b, float *C,
+// Blocked parallel implementation
+void blocked_parallel_mmul(const float *A, const float *B, float *C,
                            std::size_t N, std::size_t start_row,
-                           std::size_t end_row);
+                           std::size_t end_row) {
+  // For each row...
+  for (std::size_t row = start_row; row < end_row; row++)
+    // For each block in the row...
+    // Solve for 16 elements at a time
+    for (std::size_t block = 0; block < N; block += 16)
+      // For each chunk of A/B for this block
+      for (std::size_t chunk = 0; chunk < N; chunk += 16)
+        // For each row in the chunk
+        for (std::size_t sub_chunk = 0; sub_chunk < 16; sub_chunk++)
+          // Go through all the elements in the sub chunk
+          for (std::size_t idx = 0; idx < 16; idx++)
+            C[row * N + block + idx] +=
+                A[row * N + chunk + sub_chunk] *
+                B[chunk * N + sub_chunk * N + block + idx];
+}
 
 // Blocked MMul benchmark
 static void blocked_mmul_bench(benchmark::State &s) {
@@ -34,7 +64,7 @@ static void blocked_mmul_bench(benchmark::State &s) {
   // Initialize them with random values (and C to 0)
   std::generate(A, A + N * N, [&] { return dist(rng); });
   std::generate(B, B + N * N, [&] { return dist(rng); });
-  std::generate(C, C + N * N, [&] { return 0; });
+  std::generate(C, C + N * N, [&] { return 0.0f; });
 
   // Main benchmark loop
   for (auto _ : s) {
@@ -70,7 +100,7 @@ static void blocked_aligned_mmul_bench(benchmark::State &s) {
   // Initialize them with random values (and C to 0)
   std::generate(A, A + N * N, [&] { return dist(rng); });
   std::generate(B, B + N * N, [&] { return dist(rng); });
-  std::generate(C, C + N * N, [&] { return 0; });
+  std::generate(C, C + N * N, [&] { return 0.0f; });
 
   // Main benchmark loop
   for (auto _ : s) {
@@ -106,7 +136,7 @@ static void parallel_blocked_mmul_bench(benchmark::State &s) {
   // Initialize them with random values (and C to 0)
   std::generate(A, A + N * N, [&] { return dist(rng); });
   std::generate(B, B + N * N, [&] { return dist(rng); });
-  std::generate(C, C + N * N, [&] { return 0; });
+  std::generate(C, C + N * N, [&] { return 0.0f; });
 
   // Set up for launching threads
   std::size_t num_threads = std::thread::hardware_concurrency();
@@ -121,13 +151,12 @@ static void parallel_blocked_mmul_bench(benchmark::State &s) {
   for (auto _ : s) {
     // Launch threads
     std::size_t end_row = 0;
-    for (std::size_t i = 0; i < num_threads - 1; i++) {
+    for (std::size_t i = 0; i < num_threads; i++) {
       auto start_row = i * n_rows;
       end_row = start_row + n_rows;
       threads.emplace_back(
           [&] { blocked_parallel_mmul(A, B, C, N, start_row, end_row); });
     }
-    blocked_parallel_mmul(A, B, C, N, end_row, end_row + n_rows);
 
     // Wait for all threads to complete
     for (auto &t : threads) t.join();
