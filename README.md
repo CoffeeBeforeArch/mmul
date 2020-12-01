@@ -35,14 +35,20 @@ The following section breaks down the benchmarks contained in each subdirectory.
 ### Blocked Column
 - `blocked_column_aligned_mmul_bench`
   - A serial mmul implementation which processes a block of elements at a time, but traverses output blocks of elements in column-major order to exploit locality in the columns of B between blocks of output elements
-- `parallel_blocked_column_atomic_mmul_bench`
-  - A parallel blocked column implementation (splits columns between threads) where each thread uses an atomic fetch+add to get a new chunk of columns to process
+- `parallel_blocked_column_mmul_bench`
+  - A parallel blocked column implementation (splits columns between threads) where work is statically mapped
 
 ### Blocked Column Multi Output
 - `blocked_column_multi_output_aligned_mmul_bench`
   - A serial mmul implementation which processes a tile of output elements at a time, exploiting locality from each tile of B across output tile elements
-- `parallel_blocked_column_multi_output_atomic_mmul_bench`
-  - A parallel blocked column multi output implementation (splits columns between threads) where each thread uses an atomic fetch+add to get a new chunk of columns to process
+- `parallel_blocked_column_multi_output_mmul_bench`
+  - A parallel blocked column multi output implementation (splits columns between threads) where work is statically mapped
+
+### GPU Implementations (CUDA)
+- `baseline_cuda_mmul`
+  - A naive mmul implementation for NVIDIA GPUs written in CUDA
+- `shmem_cuda_mmul`
+  - A cache-tiled mmul implementation for NVIDIA GPUs using shared memory
 
 ## Contact Information
 
