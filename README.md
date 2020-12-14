@@ -1,4 +1,4 @@
-# Matrix Multiplication (MMul) Beenchmarks
+# Matrix Multiplication (MMul) Benchmarks
 
 This repository contains a number of serial and parallel benchmarks for matrix multiplication in C++. Matrix multiplication is a wonderful first operation to try your hand at optimizing for the following reasons:
 
@@ -9,7 +9,7 @@ This repository contains a number of serial and parallel benchmarks for matrix m
 
 And many more!
 
-The benchmarks in this repository were written using Google Benchmark. For simplicity, all benchmarks assume square matrix of dimension N x N, where N is 2^8 + 16, 2^9 + 16, and 2^10 + 16. The exception to this is a motivating example for not using a power-of-two dimension (cache associativity), which uses an input dimension of 2^8, 2^9, and 2^10.
+The benchmarks in this repository were written using Google Benchmark. For simplicity, all benchmarks assume square matrix of dimension N x N, where N is 384, 768, and 1152. 
 
 ## Benchmarks
 
@@ -17,8 +17,6 @@ The following section breaks down the benchmarks contained in each subdirectory.
 
 ### Baseline
 
-- `serial_mmul_bench_power_two`
-  - A motivating example for not using a power-of-two input dimension
 - `serial_mmul_bench`
   - Baseline serial mmul implementation (using the classical triply-nested for loop)
 - `parallel_mmul_bench`
